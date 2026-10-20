@@ -1,107 +1,15 @@
 <!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Fürdőszoba 3D terv</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650&family=Figtree:wght@400;500;600&display=swap">
 <style>
-/* Layout: egy oszlop – fejléc, nagy 3D színpad, alatta választók, végül a méretjegyzet */
-:root{
-  --bg:#f3f1ee; --surface:#ffffff; --fg:#2a2622; --muted:#6c645b; --line:#dfd8cf; --accent:#7a5c43; --accent-fg:#ffffff;
-  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
-  --body:"Figtree", "Segoe UI", system-ui, sans-serif;
-}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1a1816;--surface:#24211e;--fg:#ede7df;--muted:#a59c90;--line:#3a3531;--accent:#c9a27e;--accent-fg:#1a1816;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#1a1816;--surface:#24211e;--fg:#ede7df;--muted:#a59c90;--line:#3a3531;--accent:#c9a27e;--accent-fg:#1a1816;color-scheme:dark}
-body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.55}
-.wrap{max-width:1100px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:18px}
-header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 20px}
-h1{font-family:var(--display);font-weight:650;font-size:clamp(24px,4vw,34px);letter-spacing:-.01em;margin:0;text-wrap:balance}
-.dims{font-variant-numeric:tabular-nums;color:var(--muted);font-size:14px}
-.stage{position:relative;height:clamp(360px,64vh,680px);border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface)}
-.stage canvas{display:block;width:100%;height:100%}
-.hint{position:absolute;left:12px;bottom:12px;font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--line);padding:4px 10px;border-radius:99px;pointer-events:none}
-.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px 22px}
-.group{display:grid;gap:8px;min-width:0}
-.label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
-.seg{display:flex;flex-wrap:wrap;gap:6px}
-.seg button{font:inherit;font-size:14px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
-.seg button:hover{border-color:var(--muted)}
-.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
-.sw{width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,.15);flex:none}
-.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;border-top:1px solid var(--line);padding-top:18px}
-.notes h2{font-family:var(--display);font-weight:500;font-size:18px;margin:0 0 6px}
-.notes ul{margin:0;padding-left:18px;color:var(--fg)}
-.notes li{margin:3px 0}
-.notes .m{color:var(--muted)}
-@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+/* Layout: csak a 3D színpad, teljes képernyőn */
+:root{--bg:#f3f1ee}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1a1816;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1a1816;color-scheme:dark}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg)}
+.stage{position:fixed;inset:0}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none}
 </style>
-
 </head><body>
-<div class="wrap">
-  <header>
-    <h1>Fürdőszoba 3D terv</h1>
-    <div class="dims">230 × 158 cm · belmagasság 270 cm</div>
-  </header>
-
-  <div class="stage" id="stage" aria-label="Forgatható 3D fürdőszoba modell">
-    <div class="hint">Húzd a forgatáshoz · görgess vagy csípj a nagyításhoz</div>
-  </div>
-
-  <div class="controls">
-    <div class="group">
-      <div class="label">Nézet</div>
-      <div class="seg" id="views">
-        <button data-view="door" aria-pressed="true">Ajtóból</button>
-        <button data-view="shower" aria-pressed="false">Zuhany felé</button>
-        <button data-view="sink" aria-pressed="false">Mosdó felé</button>
-        <button data-view="top" aria-pressed="false">Felülről</button>
-      </div>
-    </div>
-    <div class="group">
-      <div class="label">Zuhany körüli csempe</div>
-      <div class="seg" id="accents">
-        <button data-accent="kubic" aria-pressed="true"><span class="sw" style="background:#e1d2ba"></span>Quina Kubic Beige 33×55</button>
-        <button data-accent="geo" aria-pressed="false"><span class="sw" style="background:#cdbca4"></span>Rex Geo Beige 30×90 (relíef)</button>
-        <button data-accent="rex" aria-pressed="false"><span class="sw" style="background:#d4c5b0"></span>Rex Beige 30×90</button>
-        <button data-accent="globe" aria-pressed="false"><span class="sw" style="background:#e3d5bf"></span>Globe Crema 30×90</button>
-      </div>
-    </div>
-    <div class="group">
-      <div class="label">Padló + 120 cm-es fal</div>
-      <div class="seg" id="mains">
-        <button data-main="palco" aria-pressed="true"><span class="sw" style="background:#ece4d6"></span>Palco Ivory 60×60</button>
-        <button data-main="assos" aria-pressed="false"><span class="sw" style="background:#e2d3bd"></span>Assos Travertino</button>
-        <button data-main="terra" aria-pressed="false"><span class="sw" style="background:#d6c4a8"></span>Terra Beige</button>
-        <button data-main="louvre" aria-pressed="false"><span class="sw" style="background:#ddd1bf"></span>Louvre Beige mat</button>
-      </div>
-    </div>
-  </div>
-
-  <section class="notes">
-    <div>
-      <h2>Ami a terven van</h2>
-      <ul>
-        <li>Walk-in zuhany 93 cm szélesen, 50 cm-es vonalas lefolyóval (12 cm-re a hátsó, 10 cm-re a bal faltól), üveg paraván.</li>
-        <li>Falon kívüli zuhanyoszlop a lefolyó fölötti falon, esőztető fejjel és kézi zuhannyal.</li>
-        <li>Fali WC 51 cm-es kerettel, előtte 120 cm magas burkolt előfal, ami polcként fut a szekrényig.</li>
-        <li>Apis 60 mosdószekrény (60×46×55) a rövid falon, a csap 60 cm-re az ajtós faltól, fölötte tükör.</li>
-        <li>Apis magas szekrény (35×30×160) a hátsó sarokban.</li>
-        <li>Falfülke a zuhanyban a bal falon: 60×30 cm, 10 cm mély, 35 cm-re a saroktól, alja 105 cm-en, belül is csempézve, meleg LED-csíkkal.</li>
-        <li>Csempe plafonig a zuhanyos részen: a lefolyó fölötti falszakaszon, a teljes bal falon és a lefolyóval szemközti falszakaszon. Máshol 120 cm-ig, fölötte festett fal.</li>
-      </ul>
-    </div>
-    <div>
-      <h2>Becsült méretek</h2>
-      <ul class="m">
-        <li>Paraván 90 × 200 cm</li>
-        <li>Zuhanytálca-zóna mélysége ~100 cm</li>
-        <li>Ablak 50 × 60 cm, párkány 140 cm-en, a WC fölött</li>
-        <li>Ajtó 70 cm, kifelé nyíló, a saroktól 20 cm-re</li>
-        <li>Mosdó felső éle 85 cm</li>
-      </ul>
-    </div>
-  </section>
-</div>
+<div class="stage" id="stage" aria-label="Forgatható 3D fürdőszoba modell"></div>
 
 <script>/**
  * @license
@@ -1413,10 +1321,6 @@ function loop(now){
 }
 requestAnimationFrame(loop);
 
-function bind(id,attr,fn){const g=document.getElementById(id);g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));fn(b.dataset[attr]);});}
-bind('views','view',k=>goView(k));
-bind('accents','accent',k=>{state.accent=k;applyTiles();});
-bind('mains','main',k=>{state.main=k;applyTiles();});
 })();
 </script>
 
